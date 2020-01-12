@@ -1,0 +1,1 @@
+A static blog support Markdown and Asciidoc

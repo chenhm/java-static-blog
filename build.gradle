@@ -1,0 +1,47 @@
+plugins {
+	id 'org.springframework.boot' version '2.1.11.RELEASE'
+	id 'io.spring.dependency-management' version '1.0.8.RELEASE'
+	id 'java'
+}
+
+group = 'com.chenhm'
+version = '0.0.1'
+sourceCompatibility = '1.8'
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+ext{
+	springBootVersion = '2.1.11.RELEASE'
+	asciidoctorjVersion = '2.2.0'
+	flexmarkVersion = '0.50.46'
+}
+
+dependencies {
+//	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	compile 'com.google.guava:guava:25.1-jre'
+	compile "org.springframework.boot:spring-boot-starter-webflux"
+	compile "org.asciidoctor:asciidoctorj:$asciidoctorjVersion"
+	compile "com.vladsch.flexmark:flexmark:$flexmarkVersion"
+	compile "com.vladsch.flexmark:flexmark-profile-pegdown:$flexmarkVersion"
+	compile "com.vladsch.flexmark:flexmark-ext-gitlab:$flexmarkVersion"
+	compile "com.github.jknack:handlebars:4.1.2"
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'io.projectreactor:reactor-test'
+	testImplementation 'com.github.tomakehurst:wiremock:2.23.2'
+	testImplementation 'org.awaitility:awaitility:4.0.1'
+}
+
+bootJar {
+//	launchScript()
+	requiresUnpack '**/jruby-complete-*.jar', '**/asciidoctorj-*.jar', '**/asciidoctorj-pdf-*.jar'
+}

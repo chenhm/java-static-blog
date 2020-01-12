@@ -1,0 +1,22 @@
+{{> head}}
+<section class="list-view">
+    <ol v-else class="list">
+        {{#list}}
+            <li class="list-item">
+                <time pubdate="pubdate" class="item-date">{{date}} | {{timeago date}}</time>
+                <a href="/{{postPath}}/{{id}}" class="item-title">
+                    {{ title }}
+                </a>
+            </li>
+        {{/list}}
+    </ol>
+
+    <div id="post-pagination" class="paginator" v-if="pages !== 0">
+        <a href="/list/{{previousPage}}">&lt;前页</a>
+    {{#times totalPage}}
+        <a href="/list/{{this}}" class="{{#eq this currentPage}}current-page{{/eq}}">{{this}}</a>
+    {{/times}}
+        <a href="/list/{{nextPage}}">后页&gt;</a>(共 {{total}} 篇)
+    </div>
+</section>
+{{> end}}
