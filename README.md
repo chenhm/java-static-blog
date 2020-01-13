@@ -4,7 +4,7 @@
 
 This is a Java based static blog generator support Markdown and Asciidoc.
 
-I like both the simplicity of Markdown and the rich expressiveness of Asciidoc, but all blog systems that support both markup languages are too complicated. A few years ago, I adopted a pure front-end solution [vue-github-blog](https://github.com/chenhm/vue-github-blog), but because Asciidoc's parser is very complicated, some clients parsing speed is not ideal. Furthermore, browser need to read resources directly from the github repository, there are sometimes failures in China. This Java version only generates pure static pages. With CDN acceleration, you can get good access results.
+I like both the simplicity of Markdown and the rich expressiveness of Asciidoc, but all blog systems that support both markup languages are too complicated. A few years ago, I adopted a pure front-end solution [vue-github-blog](https://github.com/chenhm/vue-github-blog), but because Asciidoc's parser is very complicated, some clients parsing speed is not as fast as expected. Furthermore, browser need to read resources directly from the github repository, there are sometimes failures in China. This Java version only generates pure static pages. With CDN acceleration, you can get good access results.
 
 我既喜欢 Markdown 的简洁又喜欢 Asciidoc 的丰富表达力，但同时支持这两种标记语言的博客系统都太复杂了。前几年我采用了一个纯前端的解决方案 [vue-github-blog](https://github.com/chenhm/vue-github-blog), 但因为 Asciidoc 的解析器非常复杂，导致部分客户端的解析速度不理想，再者需要直接从 github 仓库读取资源，在国内时不时会遇到一些障碍。这个 Java 版本只生成纯静态页面，配合CDN加速，可以获得不错的访问效果。
 
