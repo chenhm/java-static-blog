@@ -26,7 +26,7 @@ public class BlogProperties {
         private String dist;
         private int pageSize;
         private String title;
-        private String ignore;
+        private String copyIgnore;
     }
 
 }

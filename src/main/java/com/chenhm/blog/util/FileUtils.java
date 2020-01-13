@@ -28,7 +28,9 @@ public class FileUtils {
                 }
                 @Override
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                    Files.copy(file, dest.resolve(src.relativize(file)), StandardCopyOption.REPLACE_EXISTING);
+                    if(!predicate.test(src.relativize(file).toString())){
+                        Files.copy(file, dest.resolve(src.relativize(file)), StandardCopyOption.REPLACE_EXISTING);
+                    }
                     return FileVisitResult.CONTINUE;
                 }
             });

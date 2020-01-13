@@ -43,6 +43,7 @@ public class AsciidoctorEngine {
         Map attributes = ImmutableMap.builder()
                 .put("showtitle","true")
                 .put("toc","right")
+                .put("backend","xhtml5")
                 .put("source-highlighter","prismjs")
                 .put("imagesdir", properties.getAsciidoctor().getImagesdir())
                 .build();

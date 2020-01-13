@@ -1,28 +1,29 @@
 package com.chenhm.blog.runner;
 
-import static com.google.common.io.RecursiveDeleteOption.ALLOW_INSECURE;
 import static java.util.regex.Pattern.MULTILINE;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardWatchEventKinds;
+import java.nio.file.WatchEvent;
+import java.nio.file.WatchKey;
+import java.nio.file.WatchService;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Component;
@@ -36,7 +37,6 @@ import com.chenhm.blog.engine.HandlebarsEngine;
 import com.chenhm.blog.util.FileUtils;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import com.google.common.io.MoreFiles;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -83,79 +83,33 @@ public class BlogRunner {
     }
 
     public void run(Args args) throws Exception {
-
         copyStatic(args.getSource());
 
-        String source = args.getSource() + "/" + properties.getApp().getPostPath();
-        String dist = properties.getApp().getDist() + File.separator + properties.getApp().getPostPath();
-        String listPath = properties.getApp().getDist() + File.separator + "list";
-        File file = new File(dist);
-        if (!file.exists())
-            file.mkdirs();
+        Path source = Paths.get(args.getSource() + "/" + properties.getApp().getPostPath());
+        Path postDist = Paths.get(properties.getApp().getDist() + File.separator + properties.getApp().getPostPath());
+        Path listPath = Paths.get(properties.getApp().getDist() + File.separator + "list");
 
-        file = new File(listPath);
-        if (!file.exists())
-            file.mkdirs();
+        Files.createDirectories(postDist);
+        Files.createDirectories(listPath);
 
-        Queue<Map<String, String>> files = new ConcurrentLinkedQueue<>();
-        Files.list(Paths.get(source)).parallel().forEach(p -> {
-            if (p.toFile().isDirectory()) {
-                try {
-                    FileSystemUtils.copyRecursively(p, Paths.get(dist).resolve(p.getFileName()));
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
-                }
-                return;
-            }
+        Map<String, Map<String, String>> files = new ConcurrentHashMap<>();
+        Files.list(source).parallel().forEach(p -> renderPost(postDist, files, p));
 
-            if (!p.toFile().isFile())
-                return;
-            String fileName = p.getFileName().toString();
-            boolean isMD = fileName.endsWith(".md");
-            String id = onlyId(fileName);
+        renderList(listPath, files);
+        log.info("Blog generated");
 
-            try (FileWriter fw = new FileWriter(dist + File.separator + id + ".html")) {
-                String post = new String(Files.readAllBytes(p));
-                String postTitle;
-                String fmTitle = "";
-                String html;
-                if (isMD) {
-                    MarkdownEngine.Markdown md = markdownEngine.render(post);
-                    if (md.getMate().get("title") != null && md.getMate().get("title").size() > 0) {
-                        fmTitle = md.getMate().get("title").get(0);
-                        postTitle = fmTitle;
-                    } else {
-                        postTitle = getTitle(post);
-                    }
-                    html = md.getHtml();
-                } else {
-                    postTitle = getTitle(post);
-                    html = asciidoctorEngine.render(post);
-                }
-                files.add(ImmutableMap.<String, String>builder()
-                        .put("id", id)
-                        .put("date", onlyDate(fileName))
-                        .put("title", postTitle)
-                        .build());
+        if (args.isDev()) {
+            watchFiles(source, postDist, listPath, files);
+        }
+    }
 
-                Map scope = ImmutableMap.builder().put("html", html)
-                        .put("thisYear", getThisYear())
-                        .put("title", properties.getApp().getTitle())
-                        .put("fmTitle", fmTitle)
-                        .build();
-                fw.write(handlebarsEngine.render("post", scope));
-                fw.flush();
-            } catch (IOException e) {
-                log.error(e.getMessage(), e);
-            }
-        });
-
-        List<Map> names = files.stream().sorted((o1, o2) -> -o1.get("date").compareTo(o2.get("date"))).collect(Collectors.toList());
+    private void renderList(Path listPath, Map<String, Map<String, String>> files) {
+        List<Map> names = files.values().stream().sorted((o1, o2) -> -o1.get("date").compareTo(o2.get("date"))).collect(Collectors.toList());
         for (int page = 0, pageSize = properties.getApp().getPageSize(); page * pageSize < names.size(); page++) {
             List<Map> list = names.stream().skip(page * pageSize).limit(pageSize).collect(Collectors.toList());
             int currentPage = page + 1;
             int totalPage = ceil(names.size(), pageSize);
-            try (FileWriter fw = new FileWriter(listPath + File.separator + currentPage + ".html")) {
+            try (FileWriter fw = new FileWriter(listPath.resolve(currentPage + ".html").toFile())) {
                 Map scope = ImmutableMap.builder()
                         .put("list", list)
                         .put("title", properties.getApp().getTitle())
@@ -173,8 +127,88 @@ public class BlogRunner {
                 log.error(e.getMessage(), e);
             }
         }
+    }
 
-        log.info("Blog generated");
+    private void renderPost(Path postDist, Map<String, Map<String, String>> files, Path p) {
+        if (p.toFile().isDirectory()) {
+            try {
+                FileSystemUtils.copyRecursively(p, postDist.resolve(p.getFileName()));
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+            return;
+        }
+
+        if (!p.toFile().isFile())
+            return;
+        String fileName = p.getFileName().toString();
+        boolean isMD = fileName.endsWith(".md");
+        boolean isAdoc = fileName.endsWith(".adoc") || fileName.endsWith(".asciidoc");
+        String id = onlyId(fileName);
+
+        try (FileWriter fw = new FileWriter(postDist.resolve(id + ".html").toFile())) {
+            String post = new String(Files.readAllBytes(p));
+            String postTitle;
+            String fmTitle = "";
+            String html;
+            if (isMD) {
+                MarkdownEngine.Markdown md = markdownEngine.render(post);
+                if (md.getMate().get("title") != null && md.getMate().get("title").size() > 0) {
+                    fmTitle = md.getMate().get("title").get(0);
+                    postTitle = fmTitle;
+                } else {
+                    postTitle = getTitle(post);
+                }
+                html = md.getHtml();
+            } else if (isAdoc) {
+                postTitle = getTitle(post);
+                html = asciidoctorEngine.render(post);
+            } else {
+                log.info("can't process file: " + fileName);
+                return;
+            }
+            files.put(id, ImmutableMap.<String, String>builder()
+                    .put("id", id)
+                    .put("date", onlyDate(fileName))
+                    .put("title", postTitle)
+                    .build());
+
+            Map scope = ImmutableMap.builder().put("html", html)
+                    .put("thisYear", getThisYear())
+                    .put("title", properties.getApp().getTitle())
+                    .put("fmTitle", fmTitle)
+                    .build();
+            fw.write(handlebarsEngine.render("post", scope));
+            fw.flush();
+        } catch (IOException e) {
+            log.error(e.getMessage(), e);
+        }
+
+//        convertPDF(postDist, id);
+    }
+
+    void watchFiles(final Path source, Path dist, Path list, Map<String, Map<String, String>> files) {
+        log.info("Watching: " + source);
+        try (final WatchService watchService = FileSystems.getDefault().newWatchService()) {
+            final WatchKey watchKey = source.register(watchService, StandardWatchEventKinds.ENTRY_MODIFY);
+            while (true) {
+                final WatchKey wk = watchService.take();
+                for (WatchEvent<?> event : wk.pollEvents()) {
+                    //we only register "ENTRY_MODIFY" so the context is always a Path.
+                    final Path changed = (Path) event.context();
+                    log.info("changed: " + changed);
+                    renderPost(dist, files, source.resolve(changed));
+                    renderList(list, files);
+                }
+                // reset the key
+                boolean valid = wk.reset();
+                if (!valid) {
+                    log.warn("Key has been unregistered");
+                }
+            }
+        } catch (IOException | InterruptedException e) {
+            log.error(e.getMessage(), e);
+        }
     }
 
     void copyStatic(String path) {
@@ -186,13 +220,13 @@ public class BlogRunner {
             PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
             Resource[] resources = resolver.getResources("classpath*:/static/*");
             for (Resource r : resources) {
-                System.out.println("copy file:" + r.getDescription());
+                log.info("Copy file:" + r.getDescription());
                 FileCopyUtils.copy(r.getInputStream(), Files.newOutputStream(staticPath.resolve(r.getFilename())));
             }
             FileUtils.copyRecursively(Paths.get(path), Paths.get(properties.getApp().getDist()),
                     s -> properties.getApp().getPostPath().equals(s)
                             || properties.getApp().getDist().equals(s)
-                            || Lists.newArrayList(properties.getApp().getIgnore().split(";")).stream().anyMatch(regex -> s.matches(regex)));
+                            || Lists.newArrayList(properties.getApp().getCopyIgnore().split(";")).stream().anyMatch(regex -> s.matches(regex)));
         } catch (IOException e) {
             log.error(e.getMessage(), e);
         }

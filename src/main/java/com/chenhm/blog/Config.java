@@ -55,16 +55,17 @@ public class Config {
                         EntityResponse response = (EntityResponse) serverResponse;
                         EntityResponse.Builder<Object> builder = EntityResponse.fromObject(response.entity());
 
-                        if (serverRequest.path().endsWith(".css"))
+                        if (serverRequest.path().endsWith(".css")) {
                             builder.header(HttpHeaders.CONTENT_TYPE, MediaType.CSS_UTF_8.toString());
-                        else if (serverRequest.path().endsWith(".js"))
+                        } else if (serverRequest.path().endsWith(".js")) {
                             builder.header(HttpHeaders.CONTENT_TYPE, MediaType.JAVASCRIPT_UTF_8.toString());
-                        else if (serverRequest.path().endsWith(".json"))
+                        } else if (serverRequest.path().endsWith(".json")) {
                             builder.header(HttpHeaders.CONTENT_TYPE, MediaType.JSON_UTF_8.toString());
-                        else if (serverRequest.path().endsWith(".svg"))
+                        } else if (serverRequest.path().endsWith(".svg")) {
                             builder.header(HttpHeaders.CONTENT_TYPE, MediaType.SVG_UTF_8.toString());
-                        else
+                        } else {
                             builder.header(HttpHeaders.CONTENT_TYPE, MediaType.HTML_UTF_8.toString());
+                        }
 
                         return builder.build().block();
                     }
