@@ -17,6 +17,7 @@ public class BlogProperties {
     @Data
     public static class Asciidoctor{
         private String requests;
+        private String imagesdir;
     }
 
     @Data

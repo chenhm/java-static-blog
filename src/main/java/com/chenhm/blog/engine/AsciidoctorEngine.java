@@ -44,7 +44,7 @@ public class AsciidoctorEngine {
                 .put("showtitle","true")
                 .put("toc","right")
                 .put("source-highlighter","prismjs")
-                .put("imagesdir","https://raw.githubusercontent.com/${conf.repo}/${conf.branch}/${conf.path}")
+                .put("imagesdir", properties.getAsciidoctor().getImagesdir())
                 .build();
         options.setAttributes(attributes);
         return engine.convert(adoc,options);
