@@ -29,6 +29,7 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Component;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.util.FileSystemUtils;
+import org.springframework.util.StringUtils;
 
 import com.chenhm.blog.Args;
 import com.chenhm.blog.engine.AsciidoctorEngine;
@@ -113,6 +114,7 @@ public class BlogRunner {
                 Map scope = ImmutableMap.builder()
                         .put("list", list)
                         .put("title", properties.getApp().getTitle())
+                        .put("postTitle", properties.getApp().getTitle())
                         .put("postPath", properties.getApp().getPostPath())
                         .put("currentPage", currentPage)
                         .put("previousPage", currentPage > 1 ? currentPage - 1 : 1)
@@ -177,6 +179,8 @@ public class BlogRunner {
                     .put("thisYear", getThisYear())
                     .put("title", properties.getApp().getTitle())
                     .put("fmTitle", fmTitle)
+                    .put("postTitle", StringUtils.isEmpty(fmTitle) ? postTitle : fmTitle)
+                    .put("gaId",properties.getApp().getGaMeasurementId())
                     .build();
             fw.write(handlebarsEngine.render("post", scope));
             fw.flush();

@@ -27,6 +27,7 @@ public class BlogProperties {
         private int pageSize;
         private String title;
         private String copyIgnore;
+        private String gaMeasurementId;
     }
 
 }
