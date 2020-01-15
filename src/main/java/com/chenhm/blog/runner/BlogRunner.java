@@ -122,6 +122,7 @@ public class BlogRunner {
                         .put("totalPage", totalPage)
                         .put("total", names.size())
                         .put("thisYear", getThisYear())
+                        .put("gaId",properties.getApp().getGoogleTrackingId())
                         .build();
                 fw.write(handlebarsEngine.render("list", scope));
                 fw.flush();
@@ -180,7 +181,7 @@ public class BlogRunner {
                     .put("title", properties.getApp().getTitle())
                     .put("fmTitle", fmTitle)
                     .put("postTitle", StringUtils.isEmpty(fmTitle) ? postTitle : fmTitle)
-                    .put("gaId",properties.getApp().getGaMeasurementId())
+                    .put("gaId",properties.getApp().getGoogleTrackingId())
                     .build();
             fw.write(handlebarsEngine.render("post", scope));
             fw.flush();
