@@ -1,6 +1,11 @@
 package com.chenhm.blog.engine;
 
-import java.util.Map;
+import static org.asciidoctor.AttributesBuilder.attributes;
+import static org.asciidoctor.OptionsBuilder.options;
+import static org.asciidoctor.Placement.RIGHT;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import javax.annotation.PostConstruct;
 
@@ -11,14 +16,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import com.chenhm.blog.runner.BlogProperties;
-import com.google.common.collect.ImmutableMap;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Slf4j
 public class AsciidoctorEngine {
-    private static final String OPT_REQUIRES = "requires";
 
     private Asciidoctor engine;
 
@@ -38,16 +41,32 @@ public class AsciidoctorEngine {
         }
     }
 
-    public String render(String adoc){
+    public String render(String adoc) {
         Options options = new Options();
-        Map attributes = ImmutableMap.builder()
-                .put("showtitle","true")
-                .put("toc","right")
-                .put("backend","xhtml5")
-                .put("source-highlighter","prismjs")
-                .put("imagesdir", properties.getAsciidoctor().getImagesdir())
-                .build();
-        options.setAttributes(attributes);
-        return engine.convert(adoc,options);
+        options.setAttributes(attributes().tableOfContents(RIGHT).backend("xhtml5").sourceHighlighter("prismjs")
+                .showTitle(true).imagesDir(properties.getAsciidoctor().getImagesdir()).get());
+        return engine.convert(adoc, options);
+    }
+
+    /**
+     * Asciidoctor need custom font and theme to render CJK characters, please refer asciidoctorj command parameters, e.g:
+     * ```
+     * asciidoctorj -b pdf -a pdf-theme=basic-theme.yml -a pdf-fontsdir="uri:classloader:/path/to/fonts;GEM_FONTS_DIR" document.adoc
+     * ```
+     * Recommended using this project: https://github.com/chloerei/asciidoctor-pdf-cjk-kai_gen_gothic
+     *
+     * @param adoc
+     * @param out
+     */
+    public void renderPDF(String adoc, Path out) {
+        Options options = options().backend("pdf").toFile(out.toFile()).attributes(attributes()
+                .showTitle(true)
+                .sourceHighlighter("rouge")
+                .imagesDir(Paths.get(properties.getApp().getDist()).resolve(properties.getApp().getPostPath()).toString())
+                .attribute("pdf-fontsdir", "pdf")
+                .attribute("pdf-stylesdir", "pdf")
+                .attribute("pdf-theme", "KaiGenGothicCN")
+                .get()).get();
+        engine.convert(adoc, options);
     }
 }

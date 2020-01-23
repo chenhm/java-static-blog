@@ -1,8 +1,9 @@
 package com.chenhm.blog.runner;
 
+import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
+import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 import static java.util.regex.Pattern.MULTILINE;
 
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -10,10 +11,10 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
@@ -36,8 +37,7 @@ import com.chenhm.blog.engine.AsciidoctorEngine;
 import com.chenhm.blog.engine.MarkdownEngine;
 import com.chenhm.blog.engine.HandlebarsEngine;
 import com.chenhm.blog.util.FileUtils;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
+import com.chenhm.blog.util.Maps;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -86,9 +86,9 @@ public class BlogRunner {
     public void run(Args args) throws Exception {
         copyStatic(args.getSource());
 
-        Path source = Paths.get(args.getSource() + "/" + properties.getApp().getPostPath());
-        Path postDist = Paths.get(properties.getApp().getDist() + File.separator + properties.getApp().getPostPath());
-        Path listPath = Paths.get(properties.getApp().getDist() + File.separator + "list");
+        Path source = Paths.get(args.getSource()).resolve(properties.getApp().getPostPath());
+        Path postDist = Paths.get(properties.getApp().getDist()).resolve(properties.getApp().getPostPath());
+        Path listPath = Paths.get(properties.getApp().getDist()).resolve("list");
 
         Files.createDirectories(postDist);
         Files.createDirectories(listPath);
@@ -111,7 +111,7 @@ public class BlogRunner {
             int currentPage = page + 1;
             int totalPage = ceil(names.size(), pageSize);
             try (FileWriter fw = new FileWriter(listPath.resolve(currentPage + ".html").toFile())) {
-                Map scope = ImmutableMap.builder()
+                Map scope = Maps.builder()
                         .put("list", list)
                         .put("title", properties.getApp().getTitle())
                         .put("postTitle", properties.getApp().getTitle())
@@ -122,7 +122,7 @@ public class BlogRunner {
                         .put("totalPage", totalPage)
                         .put("total", names.size())
                         .put("thisYear", getThisYear())
-                        .put("gaId",properties.getApp().getGoogleTrackingId())
+                        .put("gaId", properties.getApp().getGoogleTrackingId())
                         .build();
                 fw.write(handlebarsEngine.render("list", scope));
                 fw.flush();
@@ -166,22 +166,25 @@ public class BlogRunner {
             } else if (isAdoc) {
                 postTitle = getTitle(post);
                 html = asciidoctorEngine.render(post);
+                if(properties.getApp().isRenderPDF()){
+                    asciidoctorEngine.renderPDF(post, postDist.resolve(id + ".pdf"));
+                }
             } else {
                 log.info("can't process file: " + fileName);
                 return;
             }
-            files.put(id, ImmutableMap.<String, String>builder()
+            files.put(id, Maps.<String, String>builder()
                     .put("id", id)
                     .put("date", onlyDate(fileName))
                     .put("title", postTitle)
                     .build());
 
-            Map scope = ImmutableMap.builder().put("html", html)
+            Map scope = Maps.builder().put("html", html)
                     .put("thisYear", getThisYear())
                     .put("title", properties.getApp().getTitle())
                     .put("fmTitle", fmTitle)
                     .put("postTitle", StringUtils.isEmpty(fmTitle) ? postTitle : fmTitle)
-                    .put("gaId",properties.getApp().getGoogleTrackingId())
+                    .put("gaId", properties.getApp().getGoogleTrackingId())
                     .build();
             fw.write(handlebarsEngine.render("post", scope));
             fw.flush();
@@ -189,22 +192,26 @@ public class BlogRunner {
             log.error(e.getMessage(), e);
         }
 
-//        convertPDF(postDist, id);
     }
 
     void watchFiles(final Path source, Path dist, Path list, Map<String, Map<String, String>> files) {
         log.info("Watching: " + source);
         try (final WatchService watchService = FileSystems.getDefault().newWatchService()) {
-            final WatchKey watchKey = source.register(watchService, StandardWatchEventKinds.ENTRY_MODIFY);
+            final WatchKey watchKey = source.register(watchService, ENTRY_MODIFY, ENTRY_DELETE);
             while (true) {
                 final WatchKey wk = watchService.take();
                 for (WatchEvent<?> event : wk.pollEvents()) {
-                    //we only register "ENTRY_MODIFY" so the context is always a Path.
                     final Path changed = (Path) event.context();
-                    log.info("changed: " + changed);
-                    renderPost(dist, files, source.resolve(changed));
+                    WatchEvent.Kind kind = event.kind();
+                    log.info(kind.name() + ": " + changed);
+                    if (kind == ENTRY_DELETE) {
+                        files.remove(onlyId(changed.getFileName().toString()));
+                    } else {
+                        renderPost(dist, files, source.resolve(changed));
+                    }
                     renderList(list, files);
                 }
+
                 // reset the key
                 boolean valid = wk.reset();
                 if (!valid) {
@@ -231,7 +238,7 @@ public class BlogRunner {
             FileUtils.copyRecursively(Paths.get(path), Paths.get(properties.getApp().getDist()),
                     s -> properties.getApp().getPostPath().equals(s)
                             || properties.getApp().getDist().equals(s)
-                            || Lists.newArrayList(properties.getApp().getCopyIgnore().split(";")).stream().anyMatch(regex -> s.matches(regex)));
+                            || Arrays.asList(properties.getApp().getCopyIgnore().split(";")).stream().anyMatch(regex -> s.matches(regex)));
         } catch (IOException e) {
             log.error(e.getMessage(), e);
         }

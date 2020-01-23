@@ -4,12 +4,12 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URI;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.server.EntityResponse;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.RouterFunctions;
@@ -18,12 +18,16 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.chenhm.blog.runner.BlogProperties;
-import com.google.common.net.MediaType;
+
+import reactor.core.publisher.Mono;
 
 @Configuration
 public class Config {
-    @Autowired
-    BlogProperties properties;
+    private Resource location;
+
+    public Config(BlogProperties properties) {
+        location = new FileSystemResource(properties.getApp().getDist() + "/");
+    }
 
     @Bean
     public RouterFunction<ServerResponse> htmlRouter() {
@@ -36,35 +40,24 @@ public class Config {
                     return serverRequest;
                 })
                 .GET("/**", request -> {
-                    Resource location = new FileSystemResource(properties.getApp().getDist() + "/");
                     String path = request.pathContainer().subPath(1).value();
-                    try {
-                        Resource resource = location.createRelative(path);
-                        if (resource.exists() && resource.isReadable()) {
-                            return EntityResponse.fromObject(resource).build().cast(ServerResponse.class);
-                        } else {
-                            return ServerResponse.temporaryRedirect(URI.create("/list/1")).build();
-                        }
-                    } catch (IOException ex) {
-                        throw new UncheckedIOException(ex);
-                    }
+                    return getServerResponseMono(path);
                 })
-//                .resources("/**", new FileSystemResource(properties.getApp().getDist() + "/"))
                 .after((serverRequest, serverResponse) -> {
                     if (serverResponse instanceof EntityResponse) {
                         EntityResponse response = (EntityResponse) serverResponse;
                         EntityResponse.Builder<Object> builder = EntityResponse.fromObject(response.entity());
-
+//                        MediaType mediaType = MediaTypeFactory.getMediaType(serverRequest.path()).orElse(TEXT_HTML);
                         if (serverRequest.path().endsWith(".css")) {
-                            builder.header(HttpHeaders.CONTENT_TYPE, MediaType.CSS_UTF_8.toString());
+                            builder.header(HttpHeaders.CONTENT_TYPE, "text/css");
                         } else if (serverRequest.path().endsWith(".js")) {
-                            builder.header(HttpHeaders.CONTENT_TYPE, MediaType.JAVASCRIPT_UTF_8.toString());
+                            builder.header(HttpHeaders.CONTENT_TYPE, "application/javascript");
                         } else if (serverRequest.path().endsWith(".json")) {
-                            builder.header(HttpHeaders.CONTENT_TYPE, MediaType.JSON_UTF_8.toString());
+                            builder.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
                         } else if (serverRequest.path().endsWith(".svg")) {
-                            builder.header(HttpHeaders.CONTENT_TYPE, MediaType.SVG_UTF_8.toString());
+                            builder.header(HttpHeaders.CONTENT_TYPE, "image/svg+xml");
                         } else {
-                            builder.header(HttpHeaders.CONTENT_TYPE, MediaType.HTML_UTF_8.toString());
+                            builder.header(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_HTML_VALUE);
                         }
 
                         return builder.build().block();
@@ -72,5 +65,18 @@ public class Config {
                     return serverResponse;
                 })
                 .build();
+    }
+
+    private Mono<ServerResponse> getServerResponseMono(String path) {
+        try {
+            Resource resource = location.createRelative(path);
+            if (resource.exists() && resource.isReadable()) {
+                return EntityResponse.fromObject(resource).build().map(resp -> resp);
+            } else {
+                return ServerResponse.temporaryRedirect(URI.create("/list/1")).build();
+            }
+        } catch (IOException ex) {
+            throw new UncheckedIOException(ex);
+        }
     }
 }

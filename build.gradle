@@ -26,17 +26,13 @@ ext{
 }
 
 dependencies {
-//	implementation 'org.springframework.boot:spring-boot-starter-actuator'
-	compile 'com.google.guava:guava:25.1-jre'
 	compile "org.springframework.boot:spring-boot-starter-webflux"
 	compile "org.asciidoctor:asciidoctorj:$asciidoctorjVersion"
+	compile "org.asciidoctor:asciidoctorj-pdf:1.5.0-rc.2"
 	compile "com.vladsch.flexmark:flexmark:$flexmarkVersion"
 	compile "com.vladsch.flexmark:flexmark-profile-pegdown:$flexmarkVersion"
 	compile "com.vladsch.flexmark:flexmark-ext-gitlab:$flexmarkVersion"
 	compile "com.github.jknack:handlebars:4.1.2"
-//	compile "com.openhtmltopdf:openhtmltopdf-core:${openhtmlVersion}"
-//	compile "com.openhtmltopdf:openhtmltopdf-pdfbox:${openhtmlVersion}"
-//	compile "com.openhtmltopdf:openhtmltopdf-svg-support:${openhtmlVersion}"
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
