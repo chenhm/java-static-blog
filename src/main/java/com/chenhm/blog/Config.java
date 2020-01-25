@@ -3,14 +3,15 @@ package com.chenhm.blog;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URI;
+import java.nio.file.Files;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.web.reactive.function.server.EntityResponse;
+import org.springframework.http.MediaTypeFactory;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.RouterFunctions;
 import org.springframework.web.reactive.function.server.ServerRequest;
@@ -18,12 +19,19 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.chenhm.blog.runner.BlogProperties;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 
 import reactor.core.publisher.Mono;
 
 @Configuration
 public class Config {
     private Resource location;
+
+    private Cache<String, ServerResponse> cache = Caffeine.newBuilder()
+            .maximumSize(10_000)
+            .expireAfterWrite(3, TimeUnit.SECONDS)
+            .build();
 
     public Config(BlogProperties properties) {
         location = new FileSystemResource(properties.getApp().getDist() + "/");
@@ -43,35 +51,21 @@ public class Config {
                     String path = request.pathContainer().subPath(1).value();
                     return getServerResponseMono(path);
                 })
-                .after((serverRequest, serverResponse) -> {
-                    if (serverResponse instanceof EntityResponse) {
-                        EntityResponse response = (EntityResponse) serverResponse;
-                        EntityResponse.Builder<Object> builder = EntityResponse.fromObject(response.entity());
-//                        MediaType mediaType = MediaTypeFactory.getMediaType(serverRequest.path()).orElse(TEXT_HTML);
-                        if (serverRequest.path().endsWith(".css")) {
-                            builder.header(HttpHeaders.CONTENT_TYPE, "text/css");
-                        } else if (serverRequest.path().endsWith(".js")) {
-                            builder.header(HttpHeaders.CONTENT_TYPE, "application/javascript");
-                        } else if (serverRequest.path().endsWith(".json")) {
-                            builder.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
-                        } else if (serverRequest.path().endsWith(".svg")) {
-                            builder.header(HttpHeaders.CONTENT_TYPE, "image/svg+xml");
-                        } else {
-                            builder.header(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_HTML_VALUE);
-                        }
-
-                        return builder.build().block();
-                    }
-                    return serverResponse;
-                })
                 .build();
     }
 
     private Mono<ServerResponse> getServerResponseMono(String path) {
+        ServerResponse response = cache.getIfPresent(path);
+        if (response != null) {
+            return Mono.just(response);
+        }
+
         try {
             Resource resource = location.createRelative(path);
             if (resource.exists() && resource.isReadable()) {
-                return EntityResponse.fromObject(resource).build().map(resp -> resp);
+                MediaType mediaType = MediaTypeFactory.getMediaType(resource).orElse(MediaType.TEXT_HTML);
+                return ServerResponse.ok().contentType(mediaType).syncBody(Files.readAllBytes(resource.getFile().toPath()))
+                        .doOnNext(resp -> cache.put(path, resp));
             } else {
                 return ServerResponse.temporaryRedirect(URI.create("/list/1")).build();
             }
