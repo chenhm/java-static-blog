@@ -18,6 +18,7 @@ public class BlogProperties {
     public static class Asciidoctor{
         private String requests;
         private String imagesdir;
+        private boolean plantumlAsImg;
     }
 
     @Data

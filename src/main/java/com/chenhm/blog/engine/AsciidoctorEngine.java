@@ -37,6 +37,7 @@ public class AsciidoctorEngine {
                 String[] requires = properties.getAsciidoctor().getRequests().split(",");
                 engine.requireLibrary(requires);
             }
+            engine.javaExtensionRegistry().block(new PlantumlProcessor(properties.getAsciidoctor().isPlantumlAsImg()));
             log.info("Asciidoctor engine initialized.");
         }
     }
