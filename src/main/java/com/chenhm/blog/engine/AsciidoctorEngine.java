@@ -64,9 +64,9 @@ public class AsciidoctorEngine {
                 .showTitle(true)
                 .sourceHighlighter("rouge")
                 .imagesDir(Paths.get(properties.getApp().getDist()).resolve(properties.getApp().getPostPath()).toString())
-                .attribute("pdf-fontsdir", "pdf")
-                .attribute("pdf-stylesdir", "pdf")
-                .attribute("pdf-theme", "KaiGenGothicCN")
+                .attribute("pdf-fontsdir", properties.getAsciidoctor().getPdfFontsdir())
+                .attribute("pdf-stylesdir", properties.getAsciidoctor().getPdfStylesdir())
+                .attribute("pdf-theme", properties.getAsciidoctor().getPdfTheme())
                 .get()).get();
         engine.convert(adoc, options);
     }

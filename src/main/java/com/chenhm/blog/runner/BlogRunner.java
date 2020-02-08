@@ -166,7 +166,7 @@ public class BlogRunner {
             } else if (isAdoc) {
                 postTitle = getTitle(post);
                 html = asciidoctorEngine.render(post);
-                if(properties.getApp().isRenderPDF()){
+                if(properties.getAsciidoctor().isPdfRender()){
                     asciidoctorEngine.renderPDF(post, postDist.resolve(id + ".pdf"));
                 }
             } else {

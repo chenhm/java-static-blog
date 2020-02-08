@@ -3,4 +3,5 @@ pluginManagement {
         gradlePluginPortal()
     }
 }
+include 'asciidoctorj-pdf-theme'
 rootProject.name = 'java-static-blog'

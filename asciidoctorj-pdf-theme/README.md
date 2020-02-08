@@ -1,0 +1,1 @@
+We need this custom theme to render CJK characters in Asciidoctor PDF.

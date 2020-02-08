@@ -1,7 +1,7 @@
 plugins {
-	id 'org.springframework.boot' version '2.1.11.RELEASE'
-	id 'io.spring.dependency-management' version '1.0.8.RELEASE'
-	id 'java'
+    id 'org.springframework.boot' version '2.1.11.RELEASE'
+    id 'io.spring.dependency-management' version '1.0.8.RELEASE'
+    id 'java'
 }
 
 group = 'com.chenhm'
@@ -9,41 +9,60 @@ version = '0.0.1'
 sourceCompatibility = '1.8'
 
 configurations {
-	compileOnly {
-		extendsFrom annotationProcessor
-	}
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
 }
 
 repositories {
-	mavenCentral()
+    mavenCentral()
 }
 
-ext{
-	springBootVersion = '2.1.11.RELEASE'
-	asciidoctorjVersion = '2.2.0'
-	flexmarkVersion = '0.50.46'
-	openhtmlVersion = '1.0.1'
-	caffeineVersion = '2.8.1'
+ext {
+    springBootVersion = '2.1.11.RELEASE'
+    asciidoctorjVersion = '2.2.0'
+    flexmarkVersion = '0.50.46'
+    openhtmlVersion = '1.0.1'
+    caffeineVersion = '2.8.1'
 }
 
 dependencies {
-	compile "org.springframework.boot:spring-boot-starter-webflux"
-	compile "org.asciidoctor:asciidoctorj:$asciidoctorjVersion"
-	compile "org.asciidoctor:asciidoctorj-pdf:1.5.0-rc.2"
-	compile "com.vladsch.flexmark:flexmark:$flexmarkVersion"
-	compile "com.vladsch.flexmark:flexmark-profile-pegdown:$flexmarkVersion"
-	compile "com.vladsch.flexmark:flexmark-ext-gitlab:$flexmarkVersion"
-	compile "com.github.jknack:handlebars:4.1.2"
-	compile "com.github.ben-manes.caffeine:caffeine:$caffeineVersion"
-	compileOnly 'org.projectlombok:lombok'
-	annotationProcessor 'org.projectlombok:lombok'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation 'io.projectreactor:reactor-test'
-	testImplementation 'com.github.tomakehurst:wiremock:2.23.2'
-	testImplementation 'org.awaitility:awaitility:4.0.1'
+    compile "org.springframework.boot:spring-boot-starter-webflux"
+    compile "org.asciidoctor:asciidoctorj:$asciidoctorjVersion"
+    compile "org.asciidoctor:asciidoctorj-pdf:1.5.0-rc.2"
+    compile "net.sourceforge.plantuml:plantuml:1.2020.0"
+    compile "com.vladsch.flexmark:flexmark:$flexmarkVersion"
+    compile "com.vladsch.flexmark:flexmark-profile-pegdown:$flexmarkVersion"
+    compile "com.vladsch.flexmark:flexmark-ext-gitlab:$flexmarkVersion"
+    compile "com.github.jknack:handlebars:4.1.2"
+    compile "com.github.ben-manes.caffeine:caffeine:$caffeineVersion"
+    compile project(':asciidoctorj-pdf-theme')
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'io.projectreactor:reactor-test'
+    testImplementation 'com.github.tomakehurst:wiremock:2.23.2'
+    testImplementation 'org.awaitility:awaitility:4.0.1'
+}
+
+compileJava {
+    options.compilerArgs << '-XDignore.symbol.file'
+    options.fork = true // may not needed on 1.8
+    options.forkOptions.executable = 'javac' // may not needed on 1.8
 }
 
 bootJar {
 //	launchScript()
-	requiresUnpack '**/jruby-complete-*.jar', '**/asciidoctorj-*.jar', '**/asciidoctorj-pdf-*.jar'
+    exclude("**/asciidoctorj-pdf-theme*.jar","asciidoctorj-pdf*.jar")
+    requiresUnpack '**/jruby-complete-*.jar', '**/asciidoctorj-*.jar'
+    archiveName = "${project.name}.${jar.extension}"
+}
+
+task bootFullJar(type: org.springframework.boot.gradle.tasks.bundling.BootJar) {
+    dependsOn bootJar
+
+    mainClassName = "com.chenhm.blog.Application"
+    classpath = bootJar.getClasspath()
+    requiresUnpack '**/jruby-complete-*.jar', '**/asciidoctorj-*.jar'
+    archiveName = "${project.name}-full.${jar.extension}"
 }

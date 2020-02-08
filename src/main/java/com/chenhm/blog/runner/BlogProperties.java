@@ -19,6 +19,10 @@ public class BlogProperties {
         private String requests;
         private String imagesdir;
         private boolean plantumlAsImg;
+        private boolean pdfRender;
+        private String pdfFontsdir;
+        private String pdfStylesdir;
+        private String pdfTheme;
     }
 
     @Data
@@ -29,7 +33,6 @@ public class BlogProperties {
         private String title;
         private String copyIgnore;
         private String googleTrackingId;
-        private boolean renderPDF;
     }
 
 }
