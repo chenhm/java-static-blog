@@ -1,14 +1,13 @@
 {{> head}}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/timeago.js/4.0.2/timeago.min.js" integrity="sha256-sTurDi2etLN9CpnUIoCC9y5iynb2qr/uo6QJqzoO7mA=" crossorigin="anonymous"></script>
 <section class="list-view">
     <ol v-else class="list">
-        {{#list}}
-            <li class="list-item">
-                <time pubdate="pubdate" class="item-date">{{date}} | {{timeago date}}</time>
-                <a href="/{{postPath}}/{{id}}" class="item-title">
-                    {{ title }}
-                </a>
-            </li>
-        {{/list}}
+    {{#list}}
+        <li class="list-item">
+            <time pubdate="pubdate" class="item-date">{{date}} | <span class="timeago" datetime="{{date}}"></span></time>
+            <a href="/{{postPath}}/{{id}}" class="item-title">{{ title }}</a>
+        </li>
+    {{/list}}
     </ol>
 
     <div id="post-pagination" class="paginator" v-if="pages !== 0">
@@ -19,4 +18,14 @@
         <a href="/list/{{nextPage}}">后页&gt;</a>(共 {{total}} 篇)
     </div>
 </section>
+<script>
+const ZH_CN = ['秒', '分', '时', '天', '周', '月', '年'];
+var locale = function(diff, idx, totalSec) {
+  if (idx === 0) return ['刚刚', '片刻后'];
+  const unit = ZH_CN[~~(idx / 2)];
+  return [`${diff} ${unit}前`, `${diff} ${unit}后`];
+};
+timeago.register('zh_CN', locale);
+timeago.render(document.querySelectorAll('.timeago'),'zh_CN');timeago.cancel();
+</script>
 {{> end}}

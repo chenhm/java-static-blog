@@ -65,33 +65,36 @@ public class PlantumlProcessor extends BlockProcessor {
     }
 
 
-
     @Override
     public Object process(StructuralNode parent, Reader reader, Map<String, Object> attributes) {
         String backend = (String) parent.getDocument().getAttribute(Attributes.BACKEND);
         String uml = reader.read().trim();
-        if(!uml.startsWith("@start"))
+        if (!uml.startsWith("@start"))
             uml = "@startuml\n" + uml + "\n@enduml";
         String title = (String) attributes.get("title");
 
         return "pdf".equals(backend) ? processPDF(parent, uml, title) : processHTML(parent, uml, title);
     }
 
-    private String getBase64Img(String uml){
-            return Base64Utils.encodeToString(getSVGImg(uml).getBytes());
+    private String getBase64Img(String uml) {
+        return Base64Utils.encodeToString(getSVGImg(uml).getBytes());
     }
 
-    private String getSVGImg(String uml){
+    private String svgCss = "<style type=\"text/css\"><![CDATA[" +
+            "text{font-family:KaiGen Gothic CN,Microsoft YaHei,Arial,sans-serif}" +
+            "]]></style><defs>";
+
+    private String getSVGImg(String uml) {
         SourceStringReader reader = new SourceStringReader(uml);
-        try(ByteArrayOutputStream os = new ByteArrayOutputStream()){
-            reader.outputImage(os, new FileFormatOption(FileFormat.SVG));
-            return os.toString().replaceAll("font-family=\"sans-serif\"","font-family=\"KaiGen Gothic CN,Microsoft YaHei,Arial,sans-serif\"");
-        }catch (IOException e){
+        try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
+            reader.outputImage(os, new FileFormatOption(FileFormat.SVG, false));
+            return os.toString().replace("<defs>", svgCss).replaceAll(" font-family=\"sans-serif\"", "");
+        } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
     }
 
-    private String getSVGImgRemote(String uml){
+    private String getSVGImgRemote(String uml) {
         String url = "https://kroki.io/plantuml/svg/";
         ClientResponse response = WebClient.builder().filter(logResponse()).filters(filter -> filter.add(logRequest())).baseUrl(url).build()
                 .get().uri(compress(uml)).exchange().doOnError(throwable -> throwable.printStackTrace()).block();
@@ -119,11 +122,11 @@ public class PlantumlProcessor extends BlockProcessor {
 
     private Object processPDF(StructuralNode parent, String uml, String title) {
         String svg = getBase64Img(uml);
-            Block block = createBlock(parent, "image", "",
-                    Maps.<String, Object>builder().put("target", "data:image/svg+xml;base64," + svg).build());
-            block.setCaption("Figure " + parent.getDocument().getAndIncrementCounter("figure") + ". ");
-            block.setTitle(title);
-            return block;
+        Block block = createBlock(parent, "image", "",
+                Maps.<String, Object>builder().put("target", "data:image/svg+xml;base64," + svg).build());
+        block.setCaption("Figure " + parent.getDocument().getAndIncrementCounter("figure") + ". ");
+        block.setTitle(title);
+        return block;
     }
 
     public static String compress(String raw) {
