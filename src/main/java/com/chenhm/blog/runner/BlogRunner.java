@@ -166,7 +166,7 @@ public class BlogRunner {
             } else if (isAdoc) {
                 postTitle = getTitle(post);
                 html = asciidoctorEngine.render(post);
-                if(properties.getAsciidoctor().isPdfRender()){
+                if (properties.getAsciidoctor().isPdfRender()) {
                     asciidoctorEngine.renderPDF(post, postDist.resolve(id + ".pdf"));
                 }
             } else {
@@ -188,7 +188,7 @@ public class BlogRunner {
                     .build();
             fw.write(handlebarsEngine.render("post", scope));
             fw.flush();
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
 
@@ -203,13 +203,17 @@ public class BlogRunner {
                 for (WatchEvent<?> event : wk.pollEvents()) {
                     final Path changed = (Path) event.context();
                     WatchEvent.Kind kind = event.kind();
-                    log.info(kind.name() + ": " + changed);
+                    if (changed.toString().endsWith("___jb_old___") || changed.toString().endsWith("___jb_tmp___")) {
+                        continue;
+                    }
+                    long start = System.currentTimeMillis();
                     if (kind == ENTRY_DELETE) {
                         files.remove(onlyId(changed.getFileName().toString()));
                     } else {
                         renderPost(dist, files, source.resolve(changed));
                     }
                     renderList(list, files);
+                    log.info(kind.name() + ": " + changed + " (" + (System.currentTimeMillis() - start) + ")");
                 }
 
                 // reset the key

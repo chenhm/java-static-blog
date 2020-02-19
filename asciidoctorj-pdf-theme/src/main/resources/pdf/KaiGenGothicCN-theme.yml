@@ -82,7 +82,7 @@ heading:
   margin_bottom: $vertical_rhythm * 0.8
 title_page:
   align: right
-  title_top: 55%
+  title_top: 40%
   title_font_size: $heading_h1_font_size
   title_font_color: ba3925
   title_line_height: 0.9
@@ -147,9 +147,9 @@ example:
   border_radius: $base_border_radius
   border_width: 0.75
   background_color: transparent
-admonition:
-  border_color: $base_border_color
-  border_width: $base_border_width
+#admonition:
+#  border_color: $base_border_color
+#  border_width: $base_border_width
 conum:
   font_family: $literal_font_family
   font_color: $literal_font_color

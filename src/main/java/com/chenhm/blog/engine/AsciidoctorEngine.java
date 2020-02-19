@@ -61,9 +61,9 @@ public class AsciidoctorEngine {
      */
     public void renderPDF(String adoc, Path out) {
         Options options = options().backend("pdf").toFile(out.toFile()).attributes(attributes()
-                .showTitle(true)
-                .docType("book")
+                .showTitle(true).docType("book").icons("font")
                 .sourceHighlighter("rouge")
+                .allowUriRead(true)
                 .imagesDir(Paths.get(properties.getApp().getDist()).resolve(properties.getApp().getPostPath()).toString())
                 .attribute("pdf-fontsdir", properties.getAsciidoctor().getPdfFontsdir())
                 .attribute("pdf-stylesdir", properties.getAsciidoctor().getPdfStylesdir())

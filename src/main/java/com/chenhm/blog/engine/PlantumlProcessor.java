@@ -82,16 +82,26 @@ public class PlantumlProcessor extends BlockProcessor {
 
     private String svgCss = "<style type=\"text/css\"><![CDATA[" +
             "text{font-family:KaiGen Gothic CN,Microsoft YaHei,Arial,sans-serif}" +
-            "]]></style><defs>";
+            "]]></style>";
 
     private String getSVGImg(String uml) {
         SourceStringReader reader = new SourceStringReader(uml);
         try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
             reader.outputImage(os, new FileFormatOption(FileFormat.SVG, false));
-            return os.toString().replace("<defs>", svgCss).replaceAll(" font-family=\"sans-serif\"", "");
+            return insertString(os.toString(), svgCss, "<defs/>", "<defs>")
+                    .replaceAll(" font-family=\"sans-serif\"", "");
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    private String insertString(String originalString, String toBeInserted, String... before) {
+        for (String s : before) {
+            int pos = originalString.indexOf(s);
+            if (pos >= 0)
+                return new StringBuffer(originalString).insert(pos, toBeInserted).toString();
+        }
+        return originalString;
     }
 
     private String getSVGImgRemote(String uml) {
