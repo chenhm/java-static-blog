@@ -38,6 +38,7 @@ public class AsciidoctorEngine {
                 engine.requireLibrary(requires);
             }
             engine.javaExtensionRegistry().block(new PlantumlProcessor(properties.getAsciidoctor().isPlantumlAsImg()));
+            engine.javaExtensionRegistry().block(new DitaaProcessor());
             log.info("Asciidoctor engine initialized.");
         }
     }

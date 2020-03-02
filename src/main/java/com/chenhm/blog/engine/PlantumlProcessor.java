@@ -77,7 +77,10 @@ public class PlantumlProcessor extends BlockProcessor {
     }
 
     private String getBase64Img(String uml) {
-        return Base64Utils.encodeToString(getSVGImg(uml).getBytes());
+        if (uml.startsWith("@startditaa"))
+            return "data:image/png;base64," + Base64Utils.encodeToString(getPNGImg(uml));
+        else
+            return "data:image/svg+xml;base64," + Base64Utils.encodeToString(getSVGImg(uml).getBytes());
     }
 
     private String svgCss = "<style type=\"text/css\"><![CDATA[" +
@@ -90,6 +93,16 @@ public class PlantumlProcessor extends BlockProcessor {
             reader.outputImage(os, new FileFormatOption(FileFormat.SVG, false));
             return insertString(os.toString(), svgCss, "<defs/>", "<defs>")
                     .replaceAll(" font-family=\"sans-serif\"", "");
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    private byte[] getPNGImg(String uml) {
+        SourceStringReader reader = new SourceStringReader(uml);
+        try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
+            reader.outputImage(os, new FileFormatOption(FileFormat.PNG, false));
+            return os.toByteArray();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -113,9 +126,9 @@ public class PlantumlProcessor extends BlockProcessor {
 
     private Object processHTML(StructuralNode parent, String uml, String title) {
         if (plantumlAsImg) {
-            String svg = getBase64Img(uml);
+            String img = getBase64Img(uml);
             Block block = createBlock(parent, "image", "",
-                    Maps.<String, Object>builder().put("target", "data:image/svg+xml;base64," + svg).build());
+                    Maps.<String, Object>builder().put("target", img).build());
             block.setCaption("Figure " + parent.getDocument().getAndIncrementCounter("figure") + ". ");
             block.setTitle(title);
             return block;
@@ -131,9 +144,9 @@ public class PlantumlProcessor extends BlockProcessor {
     }
 
     private Object processPDF(StructuralNode parent, String uml, String title) {
-        String svg = getBase64Img(uml);
+        String img = getBase64Img(uml);
         Block block = createBlock(parent, "image", "",
-                Maps.<String, Object>builder().put("target", "data:image/svg+xml;base64," + svg).build());
+                Maps.<String, Object>builder().put("target", img).build());
         block.setCaption("Figure " + parent.getDocument().getAndIncrementCounter("figure") + ". ");
         block.setTitle(title);
         return block;
