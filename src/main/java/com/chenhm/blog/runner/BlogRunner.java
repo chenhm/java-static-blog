@@ -92,6 +92,7 @@ public class BlogRunner {
 
         Files.createDirectories(postDist);
         Files.createDirectories(listPath);
+        renderManifest();
 
         Map<String, Map<String, String>> files = new ConcurrentHashMap<>();
         Files.list(source).parallel().forEach(p -> renderPost(postDist, files, p));
@@ -101,6 +102,19 @@ public class BlogRunner {
 
         if (args.isDev()) {
             watchFiles(source, postDist, listPath, files);
+        }
+    }
+
+    private void renderManifest() {
+        try (FileWriter fw = new FileWriter(Paths.get(properties.getApp().getDist()).resolve("manifest.json").toFile())) {
+            Map scope = Maps.builder()
+                    .put("title", properties.getApp().getTitle())
+                    .put("shortName", properties.getApp().getTitle())
+                    .build();
+            fw.write(handlebarsEngine.render("manifest", scope));
+            fw.flush();
+        } catch (IOException e) {
+            log.error(e.getMessage(), e);
         }
     }
 
