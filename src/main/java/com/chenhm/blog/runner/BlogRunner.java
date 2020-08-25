@@ -17,6 +17,7 @@ import java.nio.file.WatchService;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -179,8 +180,9 @@ public class BlogRunner {
                 html = md.getHtml();
             } else if (isAdoc) {
                 postTitle = getTitle(post);
-                html = asciidoctorEngine.render(post);
-                if (properties.getAsciidoctor().isPdfRender()) {
+                Map<String, Object> attributes = new HashMap<>();
+                html = asciidoctorEngine.render(post, attributes);
+                if (attributes.get("render-pdf") != null) {
                     asciidoctorEngine.renderPDF(post, postDist.resolve(id + ".pdf"));
                 }
             } else {

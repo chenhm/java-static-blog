@@ -6,6 +6,7 @@ import static org.asciidoctor.Placement.RIGHT;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Map;
 
 import javax.annotation.PostConstruct;
 
@@ -43,10 +44,11 @@ public class AsciidoctorEngine {
         }
     }
 
-    public String render(String adoc) {
+    public String render(String adoc, Map<String, Object> extractedAttributes) {
         Options options = new Options();
         options.setAttributes(attributes().tableOfContents(RIGHT).backend("xhtml5").sourceHighlighter("prismjs")
                 .showTitle(true).imagesDir(properties.getAsciidoctor().getImagesdir()).get());
+        extractedAttributes.putAll(engine.load(adoc, options.map()).getAttributes());
         return engine.convert(adoc, options);
     }
 
