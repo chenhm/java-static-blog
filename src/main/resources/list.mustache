@@ -5,17 +5,17 @@
     {{#list}}
         <li class="list-item">
             <time pubdate="pubdate" class="item-date">{{date}} | <span class="timeago" datetime="{{date}}"></span></time>
-            <a href="/{{postPath}}/{{id}}{{urlExt}}" class="item-title">{{ title }}</a>
+            <a href="../{{postPath}}/{{id}}{{urlExt}}" class="item-title">{{ title }}</a>
         </li>
     {{/list}}
     </ol>
 
     <div id="post-pagination" class="paginator" v-if="pages !== 0">
-        <a href="/list/{{previousPage}}{{urlExt}}">&lt;前页</a>
+        <a href="../list/{{previousPage}}{{urlExt}}">&lt;前页</a>
     {{#times totalPage}}
-        <a href="/list/{{this}}{{urlExt}}" class="{{#eq this currentPage}}current-page{{/eq}}">{{this}}</a>
+        <a href="../list/{{this}}{{urlExt}}" class="{{#eq this currentPage}}current-page{{/eq}}">{{this}}</a>
     {{/times}}
-        <a href="/list/{{nextPage}}{{urlExt}}">后页&gt;</a>(共 {{total}} 篇)
+        <a href="../list/{{nextPage}}{{urlExt}}">后页&gt;</a>(共 {{total}} 篇)
     </div>
 </section>
 <script>
