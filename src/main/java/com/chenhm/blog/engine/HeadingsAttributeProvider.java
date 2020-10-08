@@ -1,7 +1,5 @@
 package com.chenhm.blog.engine;
 
-import javax.validation.constraints.NotNull;
-
 import com.vladsch.flexmark.ast.Heading;
 import com.vladsch.flexmark.html.AttributeProvider;
 import com.vladsch.flexmark.html.AttributeProviderFactory;
@@ -16,12 +14,12 @@ import com.vladsch.flexmark.util.html.Attributes;
 public class HeadingsAttributeProvider {
     static class HeadingsExtension implements HtmlRenderer.HtmlRendererExtension {
         @Override
-        public void rendererOptions(@NotNull final MutableDataHolder options) {
+        public void rendererOptions(final MutableDataHolder options) {
             // add any configuration settings to options you want to apply to everything, here
         }
 
         @Override
-        public void extend(final HtmlRenderer.Builder rendererBuilder, @NotNull final String rendererType) {
+        public void extend(final HtmlRenderer.Builder rendererBuilder, final String rendererType) {
             rendererBuilder.attributeProviderFactory(SampleAttributeProvider.Factory());
         }
 
@@ -32,7 +30,7 @@ public class HeadingsAttributeProvider {
 
     static class SampleAttributeProvider implements AttributeProvider {
         @Override
-        public void setAttributes(@NotNull final Node node, @NotNull final AttributablePart part, @NotNull final Attributes attributes) {
+        public void setAttributes(final Node node, final AttributablePart part, final Attributes attributes) {
             if (node instanceof Heading) {
                 attributes.addValue("class", "md");
             }
@@ -40,9 +38,8 @@ public class HeadingsAttributeProvider {
 
         static AttributeProviderFactory Factory() {
             return new IndependentAttributeProviderFactory() {
-                @NotNull
                 @Override
-                public AttributeProvider apply(@NotNull LinkResolverContext context) {
+                public AttributeProvider apply(LinkResolverContext context) {
                     return new SampleAttributeProvider();
                 }
             };

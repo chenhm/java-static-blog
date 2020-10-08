@@ -64,7 +64,7 @@ public class Config {
             Resource resource = location.createRelative(path);
             if (resource.exists() && resource.isReadable()) {
                 MediaType mediaType = MediaTypeFactory.getMediaType(resource).orElse(MediaType.TEXT_HTML);
-                return ServerResponse.ok().contentType(mediaType).syncBody(Files.readAllBytes(resource.getFile().toPath()))
+                return ServerResponse.ok().contentType(mediaType).bodyValue(Files.readAllBytes(resource.getFile().toPath()))
                         .doOnNext(resp -> cache.put(path, resp));
             } else {
                 return ServerResponse.temporaryRedirect(URI.create("/list/1")).build();

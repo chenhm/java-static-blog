@@ -138,6 +138,7 @@ public class BlogRunner {
                         .put("total", names.size())
                         .put("thisYear", getThisYear())
                         .put("gaId", properties.getApp().getGoogleTrackingId())
+                        .put("urlExt", properties.getApp().getUrlExtension())
                         .build();
                 fw.write(handlebarsEngine.render("list", scope));
                 fw.flush();

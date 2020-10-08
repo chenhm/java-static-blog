@@ -32,6 +32,7 @@ public class BlogProperties {
         private String title;
         private String copyIgnore;
         private String googleTrackingId;
+        private String urlExtension;
     }
 
 }

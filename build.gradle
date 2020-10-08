@@ -1,6 +1,6 @@
 plugins {
-    id 'org.springframework.boot' version '2.1.11.RELEASE'
-    id 'io.spring.dependency-management' version '1.0.8.RELEASE'
+    id 'org.springframework.boot' version '2.3.4.RELEASE'
+    id 'io.spring.dependency-management' version '1.0.10.RELEASE'
     id 'java'
 }
 
@@ -19,8 +19,8 @@ repositories {
 }
 
 ext {
-    springBootVersion = '2.1.11.RELEASE'
-    asciidoctorjVersion = '2.2.0'
+    springBootVersion = '2.3.4.RELEASE'
+    asciidoctorjVersion = '2.4.1'
     flexmarkVersion = '0.50.46'
     openhtmlVersion = '1.0.1'
     caffeineVersion = '2.8.1'
@@ -29,7 +29,7 @@ ext {
 dependencies {
     compile "org.springframework.boot:spring-boot-starter-webflux"
     compile "org.asciidoctor:asciidoctorj:$asciidoctorjVersion"
-    compile "org.asciidoctor:asciidoctorj-pdf:1.5.0-rc.2"
+    compile "org.asciidoctor:asciidoctorj-pdf:1.5.3"
     compile "net.sourceforge.plantuml:plantuml:1.2020.0"
     compile "com.vladsch.flexmark:flexmark:$flexmarkVersion"
     compile "com.vladsch.flexmark:flexmark-profile-pegdown:$flexmarkVersion"
