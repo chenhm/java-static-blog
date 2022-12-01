@@ -8,8 +8,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
 
-import javax.annotation.PostConstruct;
-
 import org.asciidoctor.Asciidoctor;
 import org.asciidoctor.Options;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +16,7 @@ import org.springframework.util.StringUtils;
 
 import com.chenhm.blog.runner.BlogProperties;
 
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 
 @Component

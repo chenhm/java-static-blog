@@ -1,5 +1,7 @@
 package com.chenhm.blog.engine;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.vladsch.flexmark.ast.Heading;
 import com.vladsch.flexmark.html.AttributeProvider;
 import com.vladsch.flexmark.html.AttributeProviderFactory;
@@ -9,7 +11,7 @@ import com.vladsch.flexmark.html.renderer.AttributablePart;
 import com.vladsch.flexmark.html.renderer.LinkResolverContext;
 import com.vladsch.flexmark.util.ast.Node;
 import com.vladsch.flexmark.util.data.MutableDataHolder;
-import com.vladsch.flexmark.util.html.Attributes;
+import com.vladsch.flexmark.util.html.MutableAttributes;
 
 public class HeadingsAttributeProvider {
     static class HeadingsExtension implements HtmlRenderer.HtmlRendererExtension {
@@ -29,8 +31,9 @@ public class HeadingsAttributeProvider {
     }
 
     static class SampleAttributeProvider implements AttributeProvider {
+
         @Override
-        public void setAttributes(final Node node, final AttributablePart part, final Attributes attributes) {
+        public void setAttributes(@NotNull Node node, @NotNull AttributablePart part, @NotNull MutableAttributes attributes) {
             if (node instanceof Heading) {
                 attributes.addValue("class", "md");
             }

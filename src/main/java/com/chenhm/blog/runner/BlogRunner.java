@@ -108,7 +108,7 @@ public class BlogRunner {
 
     private void renderManifest() {
         try (FileWriter fw = new FileWriter(Paths.get(properties.getApp().getDist()).resolve("manifest.json").toFile())) {
-            Map scope = Maps.builder()
+            Map<String, Object> scope = Maps.<String, Object>builder()
                     .put("title", properties.getApp().getTitle())
                     .put("shortName", properties.getApp().getTitle())
                     .build();
@@ -126,7 +126,7 @@ public class BlogRunner {
             int currentPage = page + 1;
             int totalPage = ceil(names.size(), pageSize);
             try (FileWriter fw = new FileWriter(listPath.resolve(currentPage + ".html").toFile())) {
-                Map scope = Maps.builder()
+                Map<String, Object> scope = Maps.<String, Object>builder()
                         .put("list", list)
                         .put("title", properties.getApp().getTitle())
                         .put("postTitle", properties.getApp().getTitle())
@@ -196,7 +196,7 @@ public class BlogRunner {
                     .put("title", postTitle)
                     .build());
 
-            Map scope = Maps.builder().put("html", html)
+            Map<String, Object> scope = Maps.<String, Object>builder().put("html", html)
                     .put("thisYear", getThisYear())
                     .put("title", properties.getApp().getTitle())
                     .put("fmTitle", fmTitle)

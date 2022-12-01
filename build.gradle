@@ -1,12 +1,12 @@
 plugins {
-    id 'org.springframework.boot' version '2.3.4.RELEASE'
-    id 'io.spring.dependency-management' version '1.0.10.RELEASE'
+    id 'org.springframework.boot' version '3.0.0'
+    id 'io.spring.dependency-management' version '1.1.0'
     id 'java'
 }
 
 group = 'com.chenhm'
-version = '0.0.1'
-sourceCompatibility = '1.8'
+version = '0.0.2'
+sourceCompatibility = '17'
 
 configurations {
     compileOnly {
@@ -19,24 +19,26 @@ repositories {
 }
 
 ext {
-    springBootVersion = '2.3.4.RELEASE'
-    asciidoctorjVersion = '2.4.1'
-    flexmarkVersion = '0.50.46'
-    openhtmlVersion = '1.0.1'
+    springBootVersion = '3.0.0'
+    asciidoctorjVersion = '2.5.7'
+    flexmarkVersion = '0.64.0'
     caffeineVersion = '2.8.1'
+    handlebarsVersion = '4.3.1'
+    plantumlVersion = '1.2022.13'
 }
 
 dependencies {
-    compile "org.springframework.boot:spring-boot-starter-webflux"
-    compile "org.asciidoctor:asciidoctorj:$asciidoctorjVersion"
-    compile "org.asciidoctor:asciidoctorj-pdf:1.5.3"
-    compile "net.sourceforge.plantuml:plantuml:1.2020.0"
-    compile "com.vladsch.flexmark:flexmark:$flexmarkVersion"
-    compile "com.vladsch.flexmark:flexmark-profile-pegdown:$flexmarkVersion"
-    compile "com.vladsch.flexmark:flexmark-ext-gitlab:$flexmarkVersion"
-    compile "com.github.jknack:handlebars:4.1.2"
-    compile "com.github.ben-manes.caffeine:caffeine:$caffeineVersion"
-    compile project(':asciidoctorj-pdf-theme')
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    implementation "org.asciidoctor:asciidoctorj:$asciidoctorjVersion"
+    implementation "org.asciidoctor:asciidoctorj-pdf:2.3.3"
+    implementation "net.sourceforge.plantuml:plantuml:$plantumlVersion"
+    implementation "com.vladsch.flexmark:flexmark:$flexmarkVersion"
+    implementation "com.vladsch.flexmark:flexmark-profile-pegdown:$flexmarkVersion"
+    implementation "com.vladsch.flexmark:flexmark-ext-gitlab:$flexmarkVersion"
+    implementation "com.github.jknack:handlebars:$handlebarsVersion"
+    implementation "com.github.ben-manes.caffeine:caffeine:$caffeineVersion"
+    implementation "com.beust:jcommander:1.82"
+    implementation project(':asciidoctorj-pdf-theme')
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -61,8 +63,9 @@ bootJar {
 task bootFullJar(type: org.springframework.boot.gradle.tasks.bundling.BootJar) {
     dependsOn bootJar
 
-    mainClassName = "com.chenhm.blog.Application"
+    mainClass = "com.chenhm.blog.Application"
     classpath = bootJar.getClasspath()
+    targetJavaVersion = bootJar.getTargetJavaVersion()
     requiresUnpack '**/jruby-complete-*.jar', '**/asciidoctorj-*.jar'
     archiveName = "${project.name}-full.${jar.extension}"
 }

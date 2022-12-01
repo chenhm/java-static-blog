@@ -15,7 +15,7 @@ import com.vladsch.flexmark.ext.yaml.front.matter.AbstractYamlFrontMatterVisitor
 import com.vladsch.flexmark.ext.yaml.front.matter.YamlFrontMatterExtension;
 import com.vladsch.flexmark.html.HtmlRenderer;
 import com.vladsch.flexmark.parser.Parser;
-import com.vladsch.flexmark.profiles.pegdown.PegdownOptionsAdapter;
+import com.vladsch.flexmark.profile.pegdown.PegdownOptionsAdapter;
 import com.vladsch.flexmark.util.ast.Document;
 import com.vladsch.flexmark.util.data.DataHolder;
 
@@ -26,10 +26,10 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class MarkdownEngine {
     static final DataHolder OPTIONS = PegdownOptionsAdapter.flexmarkOptions(TOC
-                    | GITHUB_DOCUMENT_COMPATIBLE
-                    & (~ANCHORLINKS)
-            , YamlFrontMatterExtension.create()
-            , HeadingsAttributeProvider.HeadingsExtension.create())
+                            | GITHUB_DOCUMENT_COMPATIBLE
+                            & (~ANCHORLINKS)
+                    , YamlFrontMatterExtension.create()
+                    , HeadingsAttributeProvider.HeadingsExtension.create())
             .toMutable()
             .set(HtmlRenderer.GENERATE_HEADER_ID, true)
             .set(TocExtension.TITLE, "Table of Contents")

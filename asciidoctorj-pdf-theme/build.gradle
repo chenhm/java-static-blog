@@ -12,14 +12,3 @@ configurations {
 repositories {
 	mavenCentral()
 }
-
-ext{
-	lombokVersion = '1.18.0'
-}
-
-dependencies {
-	compileOnly "org.projectlombok:lombok:$lombokVersion"
-	annotationProcessor "org.projectlombok:lombok:$lombokVersion"
-	compileOnly "org.springframework.boot:spring-boot-starter-webflux:$springBootVersion"
-	compileOnly "org.asciidoctor:asciidoctorj:$asciidoctorjVersion"
-}
