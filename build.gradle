@@ -47,6 +47,10 @@ dependencies {
     testImplementation 'org.awaitility:awaitility:4.0.1'
 }
 
+configurations.implementation {
+    exclude group: 'org.springframework.boot', module: 'spring-boot-starter-json'
+}
+
 compileJava {
     options.compilerArgs << '-XDignore.symbol.file'
     options.fork = true // may not needed on 1.8
