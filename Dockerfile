@@ -1,6 +1,6 @@
-FROM eclipse-temurin:17-jdk-jammy AS builder
+FROM eclipse-temurin:17-jdk-alpine AS builder
 
-RUN jlink \
+RUN apk add binutils && jlink \
     --module-path "$JAVA_HOME/jmods" \
     --add-modules java.base,java.compiler,java.datatransfer,java.desktop,java.instrument,java.logging,java.management,java.naming,java.net.http,java.prefs,java.scripting,java.sql,java.xml,jdk.jfr,jdk.unsupported \
     --verbose \
@@ -10,8 +10,8 @@ RUN jlink \
     --no-man-pages \
     --output /opt/jre-minimal
 
-FROM ubuntu:jammy
-RUN apt-get update && apt-get install -y graphviz locales fonts-arphic-uming && rm -rf /var/lib/apt/lists/* && locale-gen zh_CN.UTF-8
+FROM alpine
+RUN apk add --no-cache graphviz font-noto-cjk && rm -rf /usr/share/fonts/noto/NotoSerifCJK* 
 
 COPY --from=builder /opt/jre-minimal /opt/jre-minimal
 
